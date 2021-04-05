@@ -8,6 +8,12 @@ use Psr\Log\LoggerInterface;
 use Shohol\TestTask\Api\CheckTrustedRepositoryInterface;
 use Shohol\TestTask\Api\Data\CheckTrustedInterface;
 
+/**
+ * Class CheckTrusted
+ *
+ * @category Model/Data
+ * @package  Shohol\TestTask\Observer
+ */
 class CheckTrusted implements ObserverInterface
 {
     private $checkTrusted;
@@ -25,6 +31,13 @@ class CheckTrusted implements ObserverInterface
     }
 
 
+    /**
+     * Execute observer method
+     *
+     * @param \Magento\Framework\Event\Observer $observer Observer
+     *
+     * @return void
+     */
     public function execute(Observer $observer)
     {
         $customerEmail = $observer->getEvent()->getCustomer()->getEmail();

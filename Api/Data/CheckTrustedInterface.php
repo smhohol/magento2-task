@@ -24,7 +24,7 @@ interface CheckTrustedInterface
      *
      * @param bool|null $trusted Trusted
      *
-     * @return CheckTrustedInterface
+     * @return \Shohol\TestTask\Api\Data\CheckTrustedInterface
      */
     public function setTrusted(bool $trusted = null): CheckTrustedInterface;
 }
