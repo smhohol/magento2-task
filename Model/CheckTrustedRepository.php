@@ -4,8 +4,8 @@ namespace Shohol\TestTask\Model;
 
 use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Customer\Model\Customer;
+use Magento\Framework\Api\FilterBuilder;
 use Magento\Framework\Api\SearchCriteriaBuilder;
-use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Exception\CouldNotSaveException;
 use Shohol\TestTask\Api\CheckTrustedRepositoryInterface;
@@ -34,17 +34,33 @@ class CheckTrustedRepository implements CheckTrustedRepositoryInterface
     protected $trustedField;
 
     /**
+     * @var \Magento\Framework\Api\FilterBuilder
+     */
+    protected $filterBuilder;
+
+    /**
+     * @var \Magento\Framework\Api\SearchCriteriaBuilder
+     */
+    protected $searchCriteriaBuilder;
+
+    /**
      * CheckTrustedRepository constructor
      *
      * @param \Magento\Customer\Api\CustomerRepositoryInterface   $customerRepository
      * @param \Shohol\TestTask\Api\Data\CheckTrustedInterface   $trustedField
+     * @param \Magento\Framework\Api\FilterBuilder $filterBuilder
+     * @param \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder
      */
     public function __construct(
         CustomerRepositoryInterface $customerRepository,
-        CheckTrustedInterface $trustedField
+        CheckTrustedInterface $trustedField,
+        FilterBuilder $filterBuilder,
+        SearchCriteriaBuilder $searchCriteriaBuilder
     ) {
         $this->customerRepository = $customerRepository;
         $this->trustedField = $trustedField;
+        $this->filterBuilder = $filterBuilder;
+        $this->searchCriteriaBuilder = $searchCriteriaBuilder;
     }
 
     /**
@@ -106,21 +122,22 @@ class CheckTrustedRepository implements CheckTrustedRepositoryInterface
      */
     public function getAllTrustedCustomers()
     {
-        $objectManager = ObjectManager::getInstance();
-
-        /** @var \Magento\Customer\Api\CustomerRepositoryInterface $customerRepository */
-        $customerRepository = $objectManager->get(CustomerRepositoryInterface::class);
-
-        /** @var \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder */
-        $searchCriteriaBuilder = $objectManager->get(SearchCriteriaBuilder::class);
-
-        $searchCriteria = $searchCriteriaBuilder
-            /* ->addFilter('email', 'zzz@zzz.ru') */
-            ->addFilter(CheckTrustedInterface::TRUSTED, '1')
-            ->addFilter('created_at', (new \DateTime())->modify('today')->getTimestamp(), 'gteq')
+        $filters[] = $this->filterBuilder
+            ->setField(CheckTrustedInterface::TRUSTED)
+            ->setConditionType('eq')
+            ->setValue('1')
             ->create();
 
-        $customersList = $customerRepository->getList($searchCriteria);
+        $filters[] = $this->filterBuilder
+            ->setField('created_at')
+            ->setConditionType('gteq')
+            ->setValue((new \DateTime())->modify('today')->getTimestamp())
+            ->create();
+
+        $this->searchCriteriaBuilder->addFilters($filters);
+        $searchCriteria = $this->searchCriteriaBuilder->create();
+
+        $customersList = $this->customerRepository->getList($searchCriteria);
 
         $customerIds = [];
         foreach ($customersList->getItems() as $customer) {
@@ -129,7 +146,6 @@ class CheckTrustedRepository implements CheckTrustedRepositoryInterface
 
         // да, знаю, что здесь нужно как-то через interface через doc-блок реализовать и тогда сам движок все отправит.
         // Но, к сожалению, пока нет четкого понимания, как эта "магия" точно работает.
-        header('Content-type: application/json');
         return json_encode($customerIds);
     }
 }

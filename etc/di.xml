@@ -2,4 +2,7 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
     <preference for="Shohol\TestTask\Api\Data\CheckTrustedInterface" type="Shohol\TestTask\Model\Data\CheckTrusted" />
     <preference for="Shohol\TestTask\Api\CheckTrustedRepositoryInterface" type="Shohol\TestTask\Model\CheckTrustedRepository" />
+    <type name="Magento\Customer\Api\CustomerRepositoryInterface">
+        <plugin name="CustomerGetListListener" type="Shohol\TestTask\Plugin\CustomerGetListOverride" sortOrder="1" />
+    </type>
 </config>
